@@ -1,0 +1,41 @@
+Mashang Community Enhancement License (MCEL) v1.0
+
+Copyright (c) 2026 Mashang Maintainer
+
+IMPORTANT SCOPE NOTICE
+1. This repository is a community-enhanced, reconstructed codebase based on
+   @anthropic-ai/claude-code related materials.
+2. Original upstream rights remain with Anthropic and their respective owners.
+3. This license applies only to maintainer-added enhancements, documentation,
+   launcher tooling, integration glue code, and repository-level arrangements
+   to the extent legally licensable by this repository maintainer.
+
+PERMITTED USE (NON-COMMERCIAL)
+You may, for non-commercial purposes only:
+1. Use, copy, and modify this repository.
+2. Fork and redistribute modified or unmodified copies.
+3. Publish derivative non-commercial works.
+
+REQUIRED CONDITIONS
+1. Keep this LICENSE file and all copyright/source attributions.
+2. Clearly mark your modifications and the date of modification.
+3. Preserve source attribution in README and related notices.
+4. If redistributing, include a prominent notice that this is a community
+   derivative and not an official Anthropic product.
+
+PROHIBITED WITHOUT PRIOR WRITTEN PERMISSION
+1. Commercial use of this repository or derivatives.
+2. Selling, sublicensing, or offering paid hosted services based primarily on
+   this repository.
+3. Using maintainer branding, identity, or project name in a way that implies
+   official endorsement.
+
+NO WARRANTY
+THE SOFTWARE/CONTENT IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO MERCHANTABILITY, FITNESS FOR
+A PARTICULAR PURPOSE, AND NON-INFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR
+COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY.
+
+CONTACT
+For commercial licensing, exceptions, or written authorization requests,
+contact the project maintainer through the repository issue/PR channel first.
