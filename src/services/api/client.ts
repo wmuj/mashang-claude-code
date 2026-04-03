@@ -343,11 +343,23 @@ async function configureApiKeyHeaders(
   headers: Record<string, string>,
   isNonInteractiveSession: boolean,
 ): Promise<void> {
-  const token =
-    process.env.ANTHROPIC_AUTH_TOKEN ||
-    (await getApiKeyFromApiKeyHelper(isNonInteractiveSession));
-  if (token) {
-    headers["Authorization"] = `Bearer ${token}`;
+  // Third-party Anthropic-compatible gateways generally expect x-api-key and
+  // may reject Bearer tokens derived from apiKeyHelper values.
+  // Preserve explicit token behavior, but avoid auto-converting helper values
+  // into Authorization when a custom base URL is configured.
+  const explicitAuthToken = process.env.ANTHROPIC_AUTH_TOKEN;
+  if (explicitAuthToken) {
+    headers["Authorization"] = `Bearer ${explicitAuthToken}`;
+    return;
+  }
+
+  if (!getNormalizedCustomBaseUrl()) {
+    const helperToken = await getApiKeyFromApiKeyHelper(
+      isNonInteractiveSession,
+    );
+    if (helperToken) {
+      headers["Authorization"] = `Bearer ${helperToken}`;
+    }
   }
 }
 

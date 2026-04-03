@@ -1,6 +1,12 @@
 import { existsSync, readFileSync, writeFileSync } from "fs";
 import { spawn, spawnSync } from "child_process";
 import { join } from "path";
+import {
+  enableConfigs,
+  getGlobalConfig,
+  saveGlobalConfig,
+} from "../utils/config.js";
+import { THEME_SETTINGS, type ThemeSetting } from "../utils/theme.js";
 
 type Provider =
   | "xai"
@@ -16,8 +22,22 @@ type Provider =
   | "vertex"
   | "foundry";
 
+type AccentColor =
+  | "default"
+  | "orange"
+  | "green"
+  | "blue"
+  | "purple"
+  | "pink"
+  | "cyan";
+
+type ProtocolMode = "anthropic" | "openai";
+
 type LauncherConfig = {
   provider: Provider;
+  protocolMode: ProtocolMode;
+  theme: ThemeSetting;
+  accentColor: AccentColor;
   apiKey: string;
   baseUrl: string;
   vertexProjectId: string;
@@ -28,6 +48,9 @@ type LauncherConfig = {
   enableProactive: boolean;
   enableBridge: boolean;
   enableVoice: boolean;
+  enableKairos: boolean;
+  enableUltraplan: boolean;
+  enableCoordinator: boolean;
   model: string;
 };
 
@@ -46,12 +69,18 @@ type FeatureAvailability = {
   proactive: boolean;
   bridge: boolean;
   voice: boolean;
+  kairos: boolean;
+  ultraplan: boolean;
+  coordinator: boolean;
 };
 
 const MAINTAINER_NAME = "码上全栈创享家";
 const MAINTAINER_GITHUB_REPO = "https://github.com/wmuj/mashang-claude-code";
 const DEFAULT_CONFIG: LauncherConfig = {
   provider: "xai",
+  protocolMode: "anthropic",
+  theme: "dark",
+  accentColor: "default",
   apiKey: process.env.XAI_API_KEY || process.env.ANTHROPIC_API_KEY || "",
   baseUrl: "https://api.x.ai",
   vertexProjectId: process.env.ANTHROPIC_VERTEX_PROJECT_ID || "",
@@ -62,8 +91,43 @@ const DEFAULT_CONFIG: LauncherConfig = {
   enableProactive: false,
   enableBridge: false,
   enableVoice: false,
+  enableKairos: false,
+  enableUltraplan: false,
+  enableCoordinator: false,
   model: "grok-4.20-0309-reasoning",
 };
+
+function isSupportedThemeSetting(value: unknown): value is ThemeSetting {
+  return (
+    typeof value === "string" &&
+    (THEME_SETTINGS as readonly string[]).includes(value)
+  );
+}
+
+function isSupportedAccentColor(value: unknown): value is AccentColor {
+  return (
+    value === "default" ||
+    value === "orange" ||
+    value === "green" ||
+    value === "blue" ||
+    value === "purple" ||
+    value === "pink" ||
+    value === "cyan"
+  );
+}
+
+function isSupportedProtocolMode(value: unknown): value is ProtocolMode {
+  return value === "anthropic" || value === "openai";
+}
+
+function getGlobalThemeOrDefault(): ThemeSetting {
+  try {
+    enableConfigs();
+    return getGlobalConfig().theme;
+  } catch {
+    return "dark";
+  }
+}
 
 function isSupportedProvider(value: unknown): value is Provider {
   return (
@@ -123,15 +187,38 @@ function normalizeBaseUrl(rawUrl: string): string {
   }
 }
 
+function normalizeApiKey(rawKey: string): string {
+  const trimmed = rawKey.trim().replace(/^['"]|['"]$/gu, "");
+  if (trimmed.startsWith("XAI_API_KEY=")) {
+    return trimmed.slice("XAI_API_KEY=".length).trim();
+  }
+  if (trimmed.startsWith("ANTHROPIC_API_KEY=")) {
+    return trimmed.slice("ANTHROPIC_API_KEY=".length).trim();
+  }
+  return trimmed;
+}
+
 function loadConfig(): LauncherConfig {
   if (!existsSync(CONFIG_PATH)) {
-    return DEFAULT_CONFIG;
+    return {
+      ...DEFAULT_CONFIG,
+      theme: getGlobalThemeOrDefault(),
+    };
   }
   try {
     const text = readFileSync(CONFIG_PATH, "utf8");
     const parsed = JSON.parse(text) as Partial<LauncherConfig>;
     return {
       provider: isSupportedProvider(parsed.provider) ? parsed.provider : "xai",
+      protocolMode: isSupportedProtocolMode(parsed.protocolMode)
+        ? parsed.protocolMode
+        : DEFAULT_CONFIG.protocolMode,
+      theme: isSupportedThemeSetting(parsed.theme)
+        ? parsed.theme
+        : DEFAULT_CONFIG.theme,
+      accentColor: isSupportedAccentColor(parsed.accentColor)
+        ? parsed.accentColor
+        : DEFAULT_CONFIG.accentColor,
       apiKey:
         typeof parsed.apiKey === "string"
           ? parsed.apiKey
@@ -172,6 +259,18 @@ function loadConfig(): LauncherConfig {
         typeof parsed.enableVoice === "boolean"
           ? parsed.enableVoice
           : DEFAULT_CONFIG.enableVoice,
+      enableKairos:
+        typeof parsed.enableKairos === "boolean"
+          ? parsed.enableKairos
+          : DEFAULT_CONFIG.enableKairos,
+      enableUltraplan:
+        typeof parsed.enableUltraplan === "boolean"
+          ? parsed.enableUltraplan
+          : DEFAULT_CONFIG.enableUltraplan,
+      enableCoordinator:
+        typeof parsed.enableCoordinator === "boolean"
+          ? parsed.enableCoordinator
+          : DEFAULT_CONFIG.enableCoordinator,
       model:
         typeof parsed.model === "string" ? parsed.model : DEFAULT_CONFIG.model,
     };
@@ -185,10 +284,23 @@ function saveConfig(input: Partial<LauncherConfig>): LauncherConfig {
     ...loadConfig(),
     ...input,
   };
+  merged.apiKey = normalizeApiKey(merged.apiKey);
   merged.baseUrl = normalizeBaseUrl(merged.baseUrl);
   merged.foundryBaseUrl = normalizeBaseUrl(merged.foundryBaseUrl);
   writeFileSync(CONFIG_PATH, `${JSON.stringify(merged, null, 2)}\n`, "utf8");
   return merged;
+}
+
+function applyThemeSetting(theme: ThemeSetting): void {
+  try {
+    enableConfigs();
+    saveGlobalConfig((current) => ({
+      ...current,
+      theme,
+    }));
+  } catch {
+    // Launcher remains usable even if global config is temporarily unavailable.
+  }
 }
 
 function clearProviderEnv(env: NodeJS.ProcessEnv): void {
@@ -200,10 +312,42 @@ function clearProviderEnv(env: NodeJS.ProcessEnv): void {
   delete env.ANTHROPIC_FOUNDRY_API_KEY;
 }
 
+function toAnthropicCompatibleBaseFromOpenAI(rawUrl: string): string {
+  const normalized = normalizeBaseUrl(rawUrl);
+  if (!normalized) {
+    return "";
+  }
+
+  try {
+    const url = new URL(normalized);
+    const path = url.pathname.replace(/\/+$/u, "");
+    if (path.endsWith("/v1/chat/completions")) {
+      url.pathname = path.slice(0, -"/v1/chat/completions".length) || "/";
+    } else if (path.endsWith("/chat/completions")) {
+      url.pathname = path.slice(0, -"/chat/completions".length) || "/";
+    } else if (path.endsWith("/v1")) {
+      url.pathname = path.slice(0, -"/v1".length) || "/";
+    }
+
+    const basePath = url.pathname.replace(/\/+$/u, "");
+    url.pathname = `${basePath}/anthropic`.replace(/\/\/+/, "/");
+    return url.toString().replace(/\/$/u, "");
+  } catch {
+    const stripped = normalized
+      .replace(/\/v1\/chat\/completions$/u, "")
+      .replace(/\/chat\/completions$/u, "")
+      .replace(/\/v1$/u, "")
+      .replace(/\/$/u, "");
+    return `${stripped}/anthropic`;
+  }
+}
+
 function getRuntimeEnv(config: LauncherConfig): NodeJS.ProcessEnv {
   const env = { ...process.env };
+  const apiKey = normalizeApiKey(config.apiKey);
   env.NO_COLOR = "1";
   env.CLAUDE_CODE_DISABLE_EXPERIMENTAL_BETAS = "1";
+  env.CLAUDE_CODE_PROVIDER_MANAGED_BY_HOST = "1";
   clearProviderEnv(env);
 
   delete env.CLAUDE_CODE_DEV_FEATURES;
@@ -219,6 +363,8 @@ function getRuntimeEnv(config: LauncherConfig): NodeJS.ProcessEnv {
   delete env.CLAUDE_CODE_FORCE_ENABLE_WORKFLOW_SCRIPTS;
   delete env.CLAUDE_CODE_FORCE_ENABLE_TORCH;
   delete env.CLAUDE_CODE_FORCE_ENABLE_HISTORY_SNIP;
+  delete env.CLAUDE_CODE_COORDINATOR_MODE;
+  delete env.CLAUDE_CODE_ACCENT_COLOR;
 
   if (config.developerMode) {
     env.CLAUDE_CODE_DEV_FEATURES = "1";
@@ -226,9 +372,12 @@ function getRuntimeEnv(config: LauncherConfig): NodeJS.ProcessEnv {
     env.CLAUDE_CODE_FORCE_ENABLE_PROACTIVE = config.enableProactive ? "1" : "0";
     env.CLAUDE_CODE_FORCE_ENABLE_BRIDGE = config.enableBridge ? "1" : "0";
     env.CLAUDE_CODE_FORCE_ENABLE_VOICE = config.enableVoice ? "1" : "0";
-    env.CLAUDE_CODE_FORCE_ENABLE_KAIROS = "1";
-    env.CLAUDE_CODE_FORCE_ENABLE_KAIROS_GITHUB_WEBHOOKS = "1";
-    env.CLAUDE_CODE_FORCE_ENABLE_ULTRAPLAN = "1";
+    env.CLAUDE_CODE_FORCE_ENABLE_KAIROS = config.enableKairos ? "1" : "0";
+    env.CLAUDE_CODE_FORCE_ENABLE_KAIROS_GITHUB_WEBHOOKS = config.enableKairos
+      ? "1"
+      : "0";
+    env.CLAUDE_CODE_FORCE_ENABLE_ULTRAPLAN = config.enableUltraplan ? "1" : "0";
+    env.CLAUDE_CODE_COORDINATOR_MODE = config.enableCoordinator ? "1" : "0";
     env.CLAUDE_CODE_FORCE_ENABLE_FORK_SUBAGENT = "1";
     env.CLAUDE_CODE_FORCE_ENABLE_UDS_INBOX = "1";
     env.CLAUDE_CODE_FORCE_ENABLE_WORKFLOW_SCRIPTS = "1";
@@ -236,26 +385,33 @@ function getRuntimeEnv(config: LauncherConfig): NodeJS.ProcessEnv {
     env.CLAUDE_CODE_FORCE_ENABLE_HISTORY_SNIP = "1";
   }
 
+  if (config.accentColor !== "default") {
+    env.CLAUDE_CODE_ACCENT_COLOR = config.accentColor;
+  }
+
   if (config.provider === "anthropic") {
-    env.ANTHROPIC_API_KEY = config.apiKey;
+    env.ANTHROPIC_API_KEY = apiKey;
     return env;
   }
 
   if (config.provider === "openrouter") {
-    env.ANTHROPIC_API_KEY = config.apiKey;
+    env.ANTHROPIC_API_KEY = apiKey;
     env.ANTHROPIC_BASE_URL = "https://openrouter.ai/api/anthropic";
     return env;
   }
 
   if (config.provider === "xai") {
-    env.ANTHROPIC_API_KEY = config.apiKey;
+    env.ANTHROPIC_API_KEY = apiKey;
     env.ANTHROPIC_BASE_URL = "https://api.x.ai";
     return env;
   }
 
   if (requiresBaseUrl(config.provider)) {
-    env.ANTHROPIC_API_KEY = config.apiKey;
-    env.ANTHROPIC_BASE_URL = normalizeBaseUrl(config.baseUrl);
+    env.ANTHROPIC_API_KEY = apiKey;
+    env.ANTHROPIC_BASE_URL =
+      config.protocolMode === "openai"
+        ? toAnthropicCompatibleBaseFromOpenAI(config.baseUrl)
+        : normalizeBaseUrl(config.baseUrl);
     return env;
   }
 
@@ -314,6 +470,30 @@ function hasVoiceCommandModule(): boolean {
   return hasCommandModule("voice/index");
 }
 
+function hasKairosModule(): boolean {
+  return (
+    existsSync(join(process.cwd(), "src", "assistant", "index.ts")) ||
+    existsSync(join(process.cwd(), "src", "assistant", "index.tsx")) ||
+    existsSync(join(process.cwd(), "src", "assistant", "index.js"))
+  );
+}
+
+function hasUltraplanCommandModule(): boolean {
+  return hasCommandModule("ultraplan");
+}
+
+function hasCoordinatorModule(): boolean {
+  return (
+    existsSync(
+      join(process.cwd(), "src", "coordinator", "coordinatorMode.ts"),
+    ) ||
+    existsSync(
+      join(process.cwd(), "src", "coordinator", "coordinatorMode.tsx"),
+    ) ||
+    existsSync(join(process.cwd(), "src", "coordinator", "coordinatorMode.js"))
+  );
+}
+
 function hasCommandModule(relativePath: string): boolean {
   const noIndexPath = relativePath.replace(/\/index$/u, "");
   return (
@@ -336,6 +516,9 @@ function getFeatureAvailability(): FeatureAvailability {
     proactive: hasProactiveCommandModule(),
     bridge: hasBridgeCommandModule(),
     voice: hasVoiceCommandModule(),
+    kairos: hasKairosModule(),
+    ultraplan: hasUltraplanCommandModule(),
+    coordinator: hasCoordinatorModule(),
   };
 }
 
@@ -406,16 +589,19 @@ function html(
     proactive: true,
     bridge: true,
     voice: true,
+    kairos: true,
+    ultraplan: true,
+    coordinator: true,
   },
 ): string {
   const providerHint = {
     xai: "xAI 网关（推荐：无需手改命令）",
     anthropic: "Anthropic 官方 API",
     openrouter: "OpenRouter Anthropic 兼容网关",
-    custom: "第三方自定义（需填写 API 地址）",
-    other: "其他第三方（OpenAI/Anthropic 兼容网关）",
+    custom: "第三方自定义（可选 Anthropic/OpenAI 模式）",
+    other: "其他第三方（可选 Anthropic/OpenAI 模式）",
     glm: "GLM（需填写兼容网关 API 地址）",
-    deepseek: "DeepSeek（需填写兼容网关 API 地址）",
+    deepseek: "DeepSeek（推荐模型：deepseek-chat / deepseek-reasoner）",
     qwen: "Qwen/通义（需填写兼容网关 API 地址）",
     kimi: "Kimi（月之暗面，需填写兼容网关 API 地址）",
     bedrock: "AWS Bedrock（使用本机 AWS 凭证）",
@@ -803,6 +989,37 @@ function html(
         <label>Model</label>
         <input id="model" placeholder="grok-4.20-0309-reasoning" />
       </div>
+      <div>
+        <label>第三方协议模式</label>
+        <select id="protocolMode">
+          <option value="anthropic">Anthropic（/v1/messages）</option>
+          <option value="openai">OpenAI（自动尝试转换到 /anthropic）</option>
+        </select>
+      </div>
+      <div>
+        <label>Theme</label>
+        <select id="theme">
+          <option value="auto">Auto（跟随系统）</option>
+          <option value="dark">Dark</option>
+          <option value="light">Light</option>
+          <option value="dark-daltonized">Dark Daltonized</option>
+          <option value="light-daltonized">Light Daltonized</option>
+          <option value="dark-ansi">Dark ANSI</option>
+          <option value="light-ansi">Light ANSI</option>
+        </select>
+      </div>
+      <div>
+        <label>主色调（命令行品牌色）</label>
+        <select id="accentColor">
+          <option value="default">默认（系统内置）</option>
+          <option value="orange">橙色</option>
+          <option value="green">绿色</option>
+          <option value="blue">蓝色</option>
+          <option value="purple">紫色</option>
+          <option value="pink">粉色</option>
+          <option value="cyan">青色</option>
+        </select>
+      </div>
       <div class="full">
         <label>API Key</label>
         <input id="apiKey" type="password" placeholder="填这里，例如 xai-..." />
@@ -832,6 +1049,9 @@ function html(
         <label class="switch" id="proactiveSwitch"><input type="checkbox" id="enableProactive" /> Proactive 主动模式 <span id="proactiveTag" class="tag" style="display:none;">未安装</span></label>
         <label class="switch" id="bridgeSwitch"><input type="checkbox" id="enableBridge" /> Bridge 远程桥接 <span id="bridgeTag" class="tag" style="display:none;">未安装</span></label>
         <label class="switch" id="voiceSwitch"><input type="checkbox" id="enableVoice" /> Voice 语音模式 <span id="voiceTag" class="tag" style="display:none;">未安装</span></label>
+        <label class="switch" id="kairosSwitch"><input type="checkbox" id="enableKairos" /> Kairos 助手模式 <span id="kairosTag" class="tag" style="display:none;">未安装</span></label>
+        <label class="switch" id="ultraplanSwitch"><input type="checkbox" id="enableUltraplan" /> Ultraplan 云端深度规划 <span id="ultraplanTag" class="tag" style="display:none;">未安装</span></label>
+        <label class="switch" id="coordinatorSwitch"><input type="checkbox" id="enableCoordinator" /> Coordinator 多 Agent 编排 <span id="coordinatorTag" class="tag" style="display:none;">未安装</span></label>
       </div>
     </div>
 
@@ -855,6 +1075,9 @@ function html(
     const featureAvailability = ${JSON.stringify(featureAvailability)}
     const provider = document.getElementById('provider')
     const model = document.getElementById('model')
+    const protocolMode = document.getElementById('protocolMode')
+    const theme = document.getElementById('theme')
+    const accentColor = document.getElementById('accentColor')
     const apiKey = document.getElementById('apiKey')
     const baseUrl = document.getElementById('baseUrl')
     const vertexProjectId = document.getElementById('vertexProjectId')
@@ -865,6 +1088,9 @@ function html(
     const enableProactive = document.getElementById('enableProactive')
     const enableBridge = document.getElementById('enableBridge')
     const enableVoice = document.getElementById('enableVoice')
+    const enableKairos = document.getElementById('enableKairos')
+    const enableUltraplan = document.getElementById('enableUltraplan')
+    const enableCoordinator = document.getElementById('enableCoordinator')
     const devSwitches = document.getElementById('devSwitches')
     const buddySwitch = document.getElementById('buddySwitch')
     const buddyTag = document.getElementById('buddyTag')
@@ -874,6 +1100,12 @@ function html(
     const bridgeTag = document.getElementById('bridgeTag')
     const voiceSwitch = document.getElementById('voiceSwitch')
     const voiceTag = document.getElementById('voiceTag')
+    const kairosSwitch = document.getElementById('kairosSwitch')
+    const kairosTag = document.getElementById('kairosTag')
+    const ultraplanSwitch = document.getElementById('ultraplanSwitch')
+    const ultraplanTag = document.getElementById('ultraplanTag')
+    const coordinatorSwitch = document.getElementById('coordinatorSwitch')
+    const coordinatorTag = document.getElementById('coordinatorTag')
     const baseWrap = document.getElementById('baseWrap')
     const baseUrlLabel = baseWrap.querySelector('label')
     const vertexWrap = document.getElementById('vertexWrap')
@@ -886,10 +1118,10 @@ function html(
       xai: 'xAI 网关（推荐：无需手改命令）',
       anthropic: 'Anthropic 官方 API',
       openrouter: 'OpenRouter Anthropic 兼容网关',
-      custom: '第三方自定义（需填写 API 地址）',
-      other: '其他第三方（OpenAI/Anthropic 兼容网关）',
+      custom: '第三方自定义（可选 Anthropic/OpenAI 模式）',
+      other: '其他第三方（可选 Anthropic/OpenAI 模式）',
       glm: 'GLM（需填写兼容网关 API 地址）',
-      deepseek: 'DeepSeek（需填写兼容网关 API 地址）',
+      deepseek: 'DeepSeek（推荐模型：deepseek-chat / deepseek-reasoner）',
       qwen: 'Qwen/通义（需填写兼容网关 API 地址）',
       kimi: 'Kimi（月之暗面，需填写兼容网关 API 地址）',
       bedrock: 'AWS Bedrock（使用本机 AWS 凭证）',
@@ -899,6 +1131,9 @@ function html(
 
     provider.value = initial.provider
     model.value = initial.model || ''
+    protocolMode.value = initial.protocolMode || 'anthropic'
+    theme.value = initial.theme || 'dark'
+    accentColor.value = initial.accentColor || 'default'
     apiKey.value = initial.apiKey || ''
     baseUrl.value = initial.baseUrl || ''
     vertexProjectId.value = initial.vertexProjectId || ''
@@ -909,6 +1144,9 @@ function html(
     enableProactive.checked = !!initial.enableProactive
     enableBridge.checked = !!initial.enableBridge
     enableVoice.checked = !!initial.enableVoice
+    enableKairos.checked = !!initial.enableKairos
+    enableUltraplan.checked = !!initial.enableUltraplan
+    enableCoordinator.checked = !!initial.enableCoordinator
 
     function applyAvailability(checkbox, wrap, tag, available) {
       if (available) return
@@ -922,6 +1160,9 @@ function html(
     applyAvailability(enableProactive, proactiveSwitch, proactiveTag, featureAvailability.proactive)
     applyAvailability(enableBridge, bridgeSwitch, bridgeTag, featureAvailability.bridge)
     applyAvailability(enableVoice, voiceSwitch, voiceTag, featureAvailability.voice)
+    applyAvailability(enableKairos, kairosSwitch, kairosTag, featureAvailability.kairos)
+    applyAvailability(enableUltraplan, ultraplanSwitch, ultraplanTag, featureAvailability.ultraplan)
+    applyAvailability(enableCoordinator, coordinatorSwitch, coordinatorTag, featureAvailability.coordinator)
 
     function refreshUI() {
       const isApiKeyProvider = ['xai', 'anthropic', 'openrouter', 'custom', 'other', 'glm', 'deepseek', 'qwen', 'kimi'].includes(provider.value)
@@ -932,13 +1173,19 @@ function html(
       apiKey.parentElement.style.display = isApiKeyProvider ? 'block' : 'none'
       baseWrap.style.display = isCustom ? 'block' : 'none'
       if (providerHintText && providerHints[provider.value]) {
-        providerHintText.textContent = providerHints[provider.value]
+        const customProtocol = protocolMode.value === 'openai'
+          ? 'OpenAI（自动尝试 /anthropic 转换）'
+          : 'Anthropic（/v1/messages）'
+        providerHintText.textContent = ['custom', 'other', 'glm', 'deepseek', 'qwen', 'kimi'].includes(provider.value)
+          ? providerHints[provider.value] + '；当前模式：' + customProtocol
+          : providerHints[provider.value]
       }
       if (isCustom && baseUrlLabel) {
         baseUrlLabel.textContent = (provider.value === 'custom' || provider.value === 'other')
           ? 'API 地址 / Base URL（第三方必填）'
           : 'API 地址 / Base URL（' + provider.value.toUpperCase() + ' 必填）'
       }
+      protocolMode.parentElement.style.display = isCustom ? 'block' : 'none'
       vertexWrap.style.display = isVertex ? 'block' : 'none'
       foundryKeyWrap.style.display = isFoundry ? 'block' : 'none'
       foundryBaseWrap.style.display = isFoundry ? 'block' : 'none'
@@ -946,6 +1193,7 @@ function html(
     }
 
     provider.addEventListener('change', refreshUI)
+    protocolMode.addEventListener('change', refreshUI)
     developerMode.addEventListener('change', refreshUI)
     refreshUI()
 
@@ -953,6 +1201,9 @@ function html(
       return {
         provider: provider.value,
         model: model.value,
+        protocolMode: protocolMode.value,
+        theme: theme.value,
+        accentColor: accentColor.value,
         apiKey: apiKey.value,
         baseUrl: baseUrl.value,
         vertexProjectId: vertexProjectId.value,
@@ -963,6 +1214,9 @@ function html(
         enableProactive: enableProactive.checked,
         enableBridge: enableBridge.checked,
         enableVoice: enableVoice.checked,
+        enableKairos: enableKairos.checked,
+        enableUltraplan: enableUltraplan.checked,
+        enableCoordinator: enableCoordinator.checked,
       }
     }
 
@@ -984,7 +1238,13 @@ function html(
       try {
         const data = await post('/api/save')
         if (!data.ok) throw new Error(data.error || '保存失败')
-        const baseMsg = '保存成功：' + provider.value + ' / ' + (model.value || 'default-model')
+        if (typeof data.normalizedModel === 'string') {
+          model.value = data.normalizedModel
+        }
+        const protocolPart = ['custom', 'other', 'glm', 'deepseek', 'qwen', 'kimi'].includes(provider.value)
+          ? ' / protocol=' + protocolMode.value
+          : ''
+        const baseMsg = '保存成功：' + provider.value + protocolPart + ' / ' + (model.value || 'default-model') + ' / theme=' + theme.value + ' / accent=' + accentColor.value
         const msg = data.warning ? baseMsg + '（' + data.warning + '）' : baseMsg
         show(msg, data.warning ? 'warn' : 'ok')
       } catch (err) {
@@ -996,7 +1256,13 @@ function html(
       try {
         const data = await post('/api/launch')
         if (!data.ok) throw new Error(data.error || '启动失败')
-        const baseMsg = '已启动 Claude（' + provider.value + ' / ' + (model.value || 'default-model') + '）'
+        if (typeof data.normalizedModel === 'string') {
+          model.value = data.normalizedModel
+        }
+        const protocolPart = ['custom', 'other', 'glm', 'deepseek', 'qwen', 'kimi'].includes(provider.value)
+          ? ' / protocol=' + protocolMode.value
+          : ''
+        const baseMsg = '已启动 Claude（' + provider.value + protocolPart + ' / ' + (model.value || 'default-model') + ' / theme=' + theme.value + ' / accent=' + accentColor.value + '）'
         const msg = data.warning
           ? baseMsg + '；' + data.warning
           : baseMsg + '，请看新开的终端窗口'
@@ -1016,7 +1282,7 @@ function html(
 }
 
 function validateConfig(config: LauncherConfig): string | null {
-  if (requiresApiKey(config.provider) && !config.apiKey.trim()) {
+  if (requiresApiKey(config.provider) && !normalizeApiKey(config.apiKey)) {
     return "API Key 不能为空";
   }
   if (requiresBaseUrl(config.provider) && !config.baseUrl.trim()) {
@@ -1034,6 +1300,113 @@ function validateConfig(config: LauncherConfig): string | null {
     }
   }
   return null;
+}
+
+function normalizeModelForGateway(config: LauncherConfig): {
+  config: LauncherConfig;
+  warning?: string;
+} {
+  const customProviders: Provider[] = [
+    "custom",
+    "other",
+    "glm",
+    "deepseek",
+    "qwen",
+    "kimi",
+  ];
+
+  if (!customProviders.includes(config.provider)) {
+    return { config };
+  }
+
+  const original = config.model.trim();
+  if (!original) {
+    if (config.provider === "deepseek") {
+      return {
+        config: {
+          ...config,
+          model: "deepseek-chat",
+        },
+        warning: "DeepSeek 未填写模型，已自动使用 deepseek-chat",
+      };
+    }
+    return { config };
+  }
+
+  let normalized = original;
+
+  // OpenAI 兼容网关常见为小写连字符模型 id。
+  if (config.protocolMode === "openai") {
+    normalized = normalized
+      .replace(/[\s_]+/gu, "-")
+      .replace(/-+/gu, "-")
+      .toLowerCase();
+  }
+
+  // 常见口语/展示名 -> 网关常用模型 id 映射。
+  if (config.provider === "deepseek") {
+    const deepseekAliases: Record<string, string> = {
+      "deepseek-v3.2": "deepseek-chat",
+      "deepseek-v3-2": "deepseek-chat",
+      "deepseekv3.2": "deepseek-chat",
+      "deepseek-v3": "deepseek-chat",
+      deepseekv3: "deepseek-chat",
+      v3: "deepseek-chat",
+      "deepseek-r1": "deepseek-reasoner",
+      "deepseek-r1-0528": "deepseek-reasoner",
+      deepseekr1: "deepseek-reasoner",
+      r1: "deepseek-reasoner",
+    };
+    normalized = deepseekAliases[normalized] ?? normalized;
+  }
+
+  if (normalized === original) {
+    return { config };
+  }
+
+  return {
+    config: {
+      ...config,
+      model: normalized,
+    },
+    warning: `模型名已自动规范化：${original} -> ${normalized}`,
+  };
+}
+
+function getProtocolCompatibilityWarning(
+  config: LauncherConfig,
+): string | undefined {
+  const customProviders: Provider[] = [
+    "custom",
+    "other",
+    "glm",
+    "deepseek",
+    "qwen",
+    "kimi",
+  ];
+  if (!customProviders.includes(config.provider)) {
+    return undefined;
+  }
+
+  if (!config.baseUrl.trim()) {
+    return undefined;
+  }
+
+  if (config.protocolMode === "openai") {
+    return "已启用 OpenAI 模式：面板会将 Base URL 自动转换为 Anthropic 兼容入口（通常是 /anthropic）。若网关不提供该入口，仍会报错，请改用 Anthropic 模式或填写网关文档中的 Anthropic 兼容地址。";
+  }
+
+  return "当前 CLI 走 Anthropic Messages 协议（/v1/messages），不是 OpenAI Chat Completions（/v1/chat/completions）。如果第三方网关只兼容 chat/completions，启动后会报 400。";
+}
+
+function mergeWarnings(
+  ...warnings: Array<string | undefined>
+): string | undefined {
+  const merged = warnings.filter(Boolean);
+  if (merged.length === 0) {
+    return undefined;
+  }
+  return merged.join("；");
 }
 
 function normalizeUnavailableFeatureConfig(config: LauncherConfig): {
@@ -1059,6 +1432,18 @@ function normalizeUnavailableFeatureConfig(config: LauncherConfig): {
   if (normalized.enableVoice && !availability.voice) {
     normalized.enableVoice = false;
     missingLabels.push("Voice");
+  }
+  if (normalized.enableKairos && !availability.kairos) {
+    normalized.enableKairos = false;
+    missingLabels.push("Kairos");
+  }
+  if (normalized.enableUltraplan && !availability.ultraplan) {
+    normalized.enableUltraplan = false;
+    missingLabels.push("Ultraplan");
+  }
+  if (normalized.enableCoordinator && !availability.coordinator) {
+    normalized.enableCoordinator = false;
+    missingLabels.push("Coordinator");
   }
 
   if (missingLabels.length > 0) {
@@ -1141,20 +1526,39 @@ const server = bunRuntime.serve({
     if (request.method === "POST" && url.pathname === "/api/save") {
       const input = (await request.json()) as Partial<LauncherConfig>;
       const savedConfig = saveConfig(input);
+      applyThemeSetting(savedConfig.theme);
       const normalized = normalizeUnavailableFeatureConfig(savedConfig);
-      const config = normalized.config;
+      const modelNormalized = normalizeModelForGateway(normalized.config);
+      const config = modelNormalized.config;
+      if (config.model !== savedConfig.model) {
+        saveConfig(config);
+      }
       const error = validateConfig(config);
       if (error) {
         return Response.json({ ok: false, error });
       }
-      return Response.json({ ok: true, warning: normalized.warning });
+      const warning = mergeWarnings(
+        normalized.warning,
+        modelNormalized.warning,
+        getProtocolCompatibilityWarning(config),
+      );
+      return Response.json({
+        ok: true,
+        warning,
+        normalizedModel: config.model,
+      });
     }
 
     if (request.method === "POST" && url.pathname === "/api/launch") {
       const input = (await request.json()) as Partial<LauncherConfig>;
       const savedConfig = saveConfig(input);
+      applyThemeSetting(savedConfig.theme);
       const normalized = normalizeUnavailableFeatureConfig(savedConfig);
-      const config = normalized.config;
+      const modelNormalized = normalizeModelForGateway(normalized.config);
+      const config = modelNormalized.config;
+      if (config.model !== savedConfig.model) {
+        saveConfig(config);
+      }
       const error = validateConfig(config);
       if (error) {
         return Response.json({ ok: false, error });
@@ -1166,7 +1570,16 @@ const server = bunRuntime.serve({
         });
       }
       launchCli(config);
-      return Response.json({ ok: true, warning: normalized.warning });
+      const warning = mergeWarnings(
+        normalized.warning,
+        modelNormalized.warning,
+        getProtocolCompatibilityWarning(config),
+      );
+      return Response.json({
+        ok: true,
+        warning,
+        normalizedModel: config.model,
+      });
     }
 
     if (request.method === "POST" && url.pathname === "/api/quit") {

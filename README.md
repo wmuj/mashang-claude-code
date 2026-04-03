@@ -396,6 +396,6 @@ vendor/                 # 原生绑定源码
   <img src="sponsor/weixin.jpg" alt="微信赞助二维码" width="280" />
 </p>
 
-## Star 趋势
+## ⭐ Star 趋势
 
-[![Star History Chart](https://api.star-history.com/svg?repos=wmuj/mashang-claude-code&type=Date)](https://www.star-history.com/#wmuj/mashang-claude-code&Date)
+[![⭐ Star History Chart](https://api.star-history.com/svg?repos=wmuj/mashang-claude-code&type=Date)](https://www.star-history.com/#wmuj/mashang-claude-code&Date)
