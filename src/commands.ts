@@ -80,12 +80,13 @@ const proactive =
     ? safeLoad(() => require("./commands/proactive.js").default)
     : null;
 const briefCommand =
-  feature("KAIROS") || feature("KAIROS_BRIEF")
+  feature("KAIROS") || feature("KAIROS_BRIEF") || forceEnable("KAIROS")
     ? safeLoad(() => require("./commands/brief.js").default)
     : null;
-const assistantCommand = feature("KAIROS")
-  ? safeLoad(() => require("./commands/assistant/index.js").default)
-  : null;
+const assistantCommand =
+  feature("KAIROS") || forceEnable("KAIROS")
+    ? safeLoad(() => require("./commands/assistant/index.js").default)
+    : null;
 const bridge =
   feature("BRIDGE_MODE") || forceEnable("BRIDGE")
     ? safeLoad(() => require("./commands/bridge/index.js").default)
@@ -98,17 +99,19 @@ const voiceCommand =
   feature("VOICE_MODE") || forceEnable("VOICE")
     ? safeLoad(() => require("./commands/voice/index.js").default)
     : null;
-const forceSnip = feature("HISTORY_SNIP")
-  ? safeLoad(() => require("./commands/force-snip.js").default)
-  : null;
-const workflowsCmd = feature("WORKFLOW_SCRIPTS")
-  ? safeLoad(
-      () =>
-        (
-          require("./commands/workflows/index.js") as typeof import("./commands/workflows/index.js")
-        ).default,
-    )
-  : null;
+const forceSnip =
+  feature("HISTORY_SNIP") || forceEnable("HISTORY_SNIP")
+    ? safeLoad(() => require("./commands/force-snip.js").default)
+    : null;
+const workflowsCmd =
+  feature("WORKFLOW_SCRIPTS") || forceEnable("WORKFLOW_SCRIPTS")
+    ? safeLoad(
+        () =>
+          (
+            require("./commands/workflows/index.js") as typeof import("./commands/workflows/index.js")
+          ).default,
+      )
+    : null;
 const webCmd = feature("CCR_REMOTE_SETUP")
   ? safeLoad(
       () =>
@@ -125,31 +128,36 @@ const clearSkillIndexCache = feature("EXPERIMENTAL_SKILL_SEARCH")
         ).clearSkillIndexCache,
     )
   : null;
-const subscribePr = feature("KAIROS_GITHUB_WEBHOOKS")
-  ? safeLoad(() => require("./commands/subscribe-pr.js").default)
-  : null;
-const ultraplan = feature("ULTRAPLAN")
-  ? safeLoad(() => require("./commands/ultraplan.js").default)
-  : null;
-const torch = feature("TORCH")
-  ? safeLoad(() => require("./commands/torch.js").default)
-  : null;
-const peersCmd = feature("UDS_INBOX")
-  ? safeLoad(
-      () =>
-        (
-          require("./commands/peers/index.js") as typeof import("./commands/peers/index.js")
-        ).default,
-    )
-  : null;
-const forkCmd = feature("FORK_SUBAGENT")
-  ? safeLoad(
-      () =>
-        (
-          require("./commands/fork/index.js") as typeof import("./commands/fork/index.js")
-        ).default,
-    )
-  : null;
+const subscribePr =
+  feature("KAIROS_GITHUB_WEBHOOKS") || forceEnable("KAIROS_GITHUB_WEBHOOKS")
+    ? safeLoad(() => require("./commands/subscribe-pr.js").default)
+    : null;
+const ultraplan =
+  feature("ULTRAPLAN") || forceEnable("ULTRAPLAN")
+    ? safeLoad(() => require("./commands/ultraplan.js").default)
+    : null;
+const torch =
+  feature("TORCH") || forceEnable("TORCH")
+    ? safeLoad(() => require("./commands/torch.js").default)
+    : null;
+const peersCmd =
+  feature("UDS_INBOX") || forceEnable("UDS_INBOX")
+    ? safeLoad(
+        () =>
+          (
+            require("./commands/peers/index.js") as typeof import("./commands/peers/index.js")
+          ).default,
+      )
+    : null;
+const forkCmd =
+  feature("FORK_SUBAGENT") || forceEnable("FORK_SUBAGENT")
+    ? safeLoad(
+        () =>
+          (
+            require("./commands/fork/index.js") as typeof import("./commands/fork/index.js")
+          ).default,
+      )
+    : null;
 const buddy =
   feature("BUDDY") || forceEnable("BUDDY")
     ? safeLoad(

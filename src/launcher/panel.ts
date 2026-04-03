@@ -49,8 +49,7 @@ type FeatureAvailability = {
 };
 
 const MAINTAINER_NAME = "码上全栈创享家";
-const MAINTAINER_GITHUB_REPO =
-  "https://github.com/wmuj/mashang-claude-code";
+const MAINTAINER_GITHUB_REPO = "https://github.com/wmuj/mashang-claude-code";
 const DEFAULT_CONFIG: LauncherConfig = {
   provider: "xai",
   apiKey: process.env.XAI_API_KEY || process.env.ANTHROPIC_API_KEY || "",
@@ -212,6 +211,14 @@ function getRuntimeEnv(config: LauncherConfig): NodeJS.ProcessEnv {
   delete env.CLAUDE_CODE_FORCE_ENABLE_PROACTIVE;
   delete env.CLAUDE_CODE_FORCE_ENABLE_BRIDGE;
   delete env.CLAUDE_CODE_FORCE_ENABLE_VOICE;
+  delete env.CLAUDE_CODE_FORCE_ENABLE_KAIROS;
+  delete env.CLAUDE_CODE_FORCE_ENABLE_KAIROS_GITHUB_WEBHOOKS;
+  delete env.CLAUDE_CODE_FORCE_ENABLE_ULTRAPLAN;
+  delete env.CLAUDE_CODE_FORCE_ENABLE_FORK_SUBAGENT;
+  delete env.CLAUDE_CODE_FORCE_ENABLE_UDS_INBOX;
+  delete env.CLAUDE_CODE_FORCE_ENABLE_WORKFLOW_SCRIPTS;
+  delete env.CLAUDE_CODE_FORCE_ENABLE_TORCH;
+  delete env.CLAUDE_CODE_FORCE_ENABLE_HISTORY_SNIP;
 
   if (config.developerMode) {
     env.CLAUDE_CODE_DEV_FEATURES = "1";
@@ -219,6 +226,14 @@ function getRuntimeEnv(config: LauncherConfig): NodeJS.ProcessEnv {
     env.CLAUDE_CODE_FORCE_ENABLE_PROACTIVE = config.enableProactive ? "1" : "0";
     env.CLAUDE_CODE_FORCE_ENABLE_BRIDGE = config.enableBridge ? "1" : "0";
     env.CLAUDE_CODE_FORCE_ENABLE_VOICE = config.enableVoice ? "1" : "0";
+    env.CLAUDE_CODE_FORCE_ENABLE_KAIROS = "1";
+    env.CLAUDE_CODE_FORCE_ENABLE_KAIROS_GITHUB_WEBHOOKS = "1";
+    env.CLAUDE_CODE_FORCE_ENABLE_ULTRAPLAN = "1";
+    env.CLAUDE_CODE_FORCE_ENABLE_FORK_SUBAGENT = "1";
+    env.CLAUDE_CODE_FORCE_ENABLE_UDS_INBOX = "1";
+    env.CLAUDE_CODE_FORCE_ENABLE_WORKFLOW_SCRIPTS = "1";
+    env.CLAUDE_CODE_FORCE_ENABLE_TORCH = "1";
+    env.CLAUDE_CODE_FORCE_ENABLE_HISTORY_SNIP = "1";
   }
 
   if (config.provider === "anthropic") {
@@ -283,7 +298,12 @@ function hasBuddyCommandModule(): boolean {
 }
 
 function hasProactiveCommandModule(): boolean {
-  return hasCommandModule("proactive");
+  return (
+    hasCommandModule("proactive") ||
+    existsSync(join(process.cwd(), "src", "proactive", "index.ts")) ||
+    existsSync(join(process.cwd(), "src", "proactive", "index.tsx")) ||
+    existsSync(join(process.cwd(), "src", "proactive", "index.js"))
+  );
 }
 
 function hasBridgeCommandModule(): boolean {

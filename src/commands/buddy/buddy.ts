@@ -106,6 +106,60 @@ function hatchCompanion(onDone: LocalJSXCommandOnDone): null {
   return null;
 }
 
+function hatchLegendaryCompanion(onDone: LocalJSXCommandOnDone): null {
+  let pickedSeed = generateSeed();
+  let pickedRoll = rollWithSeed(pickedSeed);
+
+  // Keep randomness, but guarantee a 5-star outcome for this special draw.
+  for (let i = 0; i < 2000; i++) {
+    const seed = generateSeed();
+    const roll = rollWithSeed(seed);
+    if (roll.bones.rarity === "legendary") {
+      pickedSeed = seed;
+      pickedRoll = roll;
+      break;
+    }
+  }
+
+  const name = SPECIES_NAMES[pickedRoll.bones.species] ?? "Buddy";
+  const personality =
+    SPECIES_PERSONALITY[pickedRoll.bones.species] ??
+    "Mysterious and code-savvy.";
+
+  const stored: StoredCompanion = {
+    name,
+    personality,
+    seed: pickedSeed,
+    hatchedAt: Date.now(),
+  };
+
+  saveGlobalConfig((cfg) => ({
+    ...cfg,
+    companion: stored,
+    companionMuted: false,
+  }));
+
+  const stars = RARITY_STARS[pickedRoll.bones.rarity];
+  const sprite = renderSprite(pickedRoll.bones, 0);
+  const shiny = pickedRoll.bones.shiny ? " ✨ Shiny!" : "";
+
+  const lines = [
+    "Legendary draw complete!",
+    "",
+    ...sprite,
+    "",
+    `${name} the ${speciesLabel(pickedRoll.bones.species)}${shiny}`,
+    `Rarity: ${stars} (${pickedRoll.bones.rarity})`,
+    `\"${personality}\"`,
+    "",
+    "You got a random 5-star companion.",
+    "Use /buddy rehatch to reroll normally · /buddy pet to interact",
+  ];
+
+  onDone(lines.join("\n"), { display: "system" });
+  return null;
+}
+
 export async function call(
   onDone: LocalJSXCommandOnDone,
   context: ToolUseContext & LocalJSXCommandContext,
@@ -150,6 +204,15 @@ export async function call(
 
   if (sub === "hatch" || sub === "rehatch") {
     return hatchCompanion(onDone);
+  }
+
+  if (
+    sub === "legendary" ||
+    sub === "five" ||
+    sub === "five-star" ||
+    sub === "5star"
+  ) {
+    return hatchLegendaryCompanion(onDone);
   }
 
   const companion = getCompanion();

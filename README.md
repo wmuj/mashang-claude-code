@@ -16,28 +16,11 @@
 > [!WARNING]
 > 本仓库为**社区二开版本（非 Anthropic 官方）**。原始源码版权归 [Anthropic](https://www.anthropic.com) 所有；本仓库中的增强功能与文档由当前维护者持续更新。
 
-## Star 趋势
-
-[![Star History Chart](https://api.star-history.com/svg?repos=wmuj/mashang-claude-code&type=Date)](https://www.star-history.com/#wmuj/mashang-claude-code&Date)
-
----
-
 ## 维护者信息
 
 - 公众号：**码上全栈创享家**
 - 抖音：**码上全栈创享家**
 - 小红书：**码上全栈创享家**
-
----
-
-## 请作者喝杯咖啡
-
-如果这个项目帮你省了时间、解决了问题，可以赞助一杯咖啡，支持后续维护与功能迭代。
-
-<p align="center">
-  <img src="sponsor/zhifubao.jpg" alt="支付宝赞助二维码" width="280" />
-  <img src="sponsor/weixin.jpg" alt="微信赞助二维码" width="280" />
-</p>
 
 ---
 
@@ -110,7 +93,7 @@ mashang-claude-code-launcher.bat
 - **1% 闪光概率**：独立于稀有度，任何宠物都有 1% 概率成为闪光个体
 - **确定性生成**：使用账号 UUID + 固定盐值 `'friend-2026-401'` 经 FNV-1a 哈希 → Mulberry32 PRNG，每人只会得到一只固定的宠物，改配置也没用
 - **外观系统**：6 种眼睛样式 + 8 种帽子（皇冠、巫师帽、光环等），common 稀有度没有帽子
-- **交互**：`/buddy pet` 抚摸（爱心动画）、`/buddy hatch` 孵化、`/buddy card` 查看卡片
+- **交互**：`/buddy pet` 抚摸（爱心动画）、`/buddy hatch` 首次孵化、`/buddy rehatch` 重新随机抽取、`/buddy legendary` 抽取随机五星宠物
 - **动画**：500ms 帧率的 ASCII 精灵动画，气泡对话，窄终端自动退化为表情文字脸（如 `=·ω·=`）
 - **编译开关**：`feature('BUDDY')`
 
@@ -217,7 +200,7 @@ mashang-claude-code-launcher.bat
 
 ### 6. Bridge — 远程遥控终端
 
-> 源码位置：`src/bridge/`（31 个文件）
+> 源码位置：`src/bridge/`（34 个文件）
 
 从 claude.ai 或手机直接操控本地 CLI。
 
@@ -355,7 +338,7 @@ src/                    # 核心源码（1,987 个 TS/TSX）
 ├── buddy/              # 宠物伴侣系统
 ├── assistant/          # KAIROS 助手模式
 ├── coordinator/        # 多 Agent 协调器
-├── bridge/             # 远程控制桥接（31 文件）
+├── bridge/             # 远程控制桥接（34 文件）
 ├── proactive/          # 主动模式
 ├── vim/                # Vim 模式引擎
 ├── voice/              # 语音交互
@@ -401,3 +384,18 @@ vendor/                 # 原生绑定源码
 - 源码版权归 [Anthropic](https://www.anthropic.com) 所有
 - 仅用于技术研究与学习，请勿用于商业用途
 - 如有侵权，请联系删除
+
+---
+
+## 请作者喝杯咖啡
+
+如果这个项目帮你省了时间、解决了问题，可以赞助一杯咖啡，支持后续维护与功能迭代。
+
+<p align="center">
+  <img src="sponsor/zhifubao.jpg" alt="支付宝赞助二维码" width="280" />
+  <img src="sponsor/weixin.jpg" alt="微信赞助二维码" width="280" />
+</p>
+
+## Star 趋势
+
+[![Star History Chart](https://api.star-history.com/svg?repos=wmuj/mashang-claude-code&type=Date)](https://www.star-history.com/#wmuj/mashang-claude-code&Date)
