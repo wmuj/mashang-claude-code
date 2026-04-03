@@ -21,6 +21,7 @@
 - 公众号：**码上全栈创享家**
 - 抖音：**码上全栈创享家**
 - 小红书：**码上全栈创享家**
+- Git 地址：**https://github.com/wmuj/mashang-claude-code**
 
 ---
 
