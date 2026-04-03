@@ -74,6 +74,26 @@ mashang-claude-code-launcher.bat
 - 面板内置开发者模式开关，可按白名单启用被门控能力（如 Buddy / Proactive / Bridge / Voice）。
 - 默认关闭，优先保证普通用户稳定性。
 
+### 面板与终端展示
+
+<p align="center">
+  <img src="display/825489a3e98537c7c5e6f2ef65bfd6bf.png" alt="一键启动面板截图" width="960" />
+</p>
+
+<p align="center">
+  <img src="display/8a9232dd076493ff12659f19195e3d3d.png" alt="四种主色调终端拼图" width="960" />
+</p>
+
+<p align="center">
+  <img src="display/e5259406e5b494365f61a6df1c26c885.png" alt="青色主题终端" width="48%" />
+  <img src="display/95683e123ec939522087fc9ee227377d.png" alt="粉色主题终端" width="48%" />
+</p>
+
+<p align="center">
+  <img src="display/b61d4fadebecedbc0354f623579648c7.png" alt="紫色主题终端" width="48%" />
+  <img src="display/c70e7f3619f0eeb4f3f9320e275cfe2e.png" alt="蓝色主题终端" width="48%" />
+</p>
+
 ---
 
 ## 从源码中发现的 7 大隐藏功能
@@ -96,6 +116,10 @@ mashang-claude-code-launcher.bat
 - **交互**：`/buddy pet` 抚摸（爱心动画）、`/buddy hatch` 首次孵化、`/buddy rehatch` 重新随机抽取、`/buddy legendary` 抽取随机五星宠物
 - **动画**：500ms 帧率的 ASCII 精灵动画，气泡对话，窄终端自动退化为表情文字脸（如 `=·ω·=`）
 - **编译开关**：`feature('BUDDY')`
+
+<p align="center">
+  <img src="display/c70e7f3619f0eeb4f3f9320e275cfe2e.png" alt="Buddy legendary 五星宠物随机抽取示例" width="960" />
+</p>
 
 ---
 
