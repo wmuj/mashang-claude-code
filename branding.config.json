@@ -1,0 +1,22 @@
+{
+  "project": {
+    "displayName": "CloudForge CLI（码上全栈创享家）",
+    "shortName": "cloudforge-cli"
+  },
+  "maintainer": {
+    "name": "码上全栈创享家",
+    "social": {
+      "wechatOfficial": "码上全栈创享家",
+      "douyin": "码上全栈创享家",
+      "xiaohongshu": "码上全栈创享家"
+    }
+  },
+  "github": {
+    "owner": "wmuj",
+    "repo": "civil-engineering-cloud-claude-code-source-v2.1.88"
+  },
+  "package": {
+    "name": "@wmuj/cloudforge-cli",
+    "description": "CloudForge CLI community-enhanced toolkit (based on restored Claude Code source)."
+  }
+}
