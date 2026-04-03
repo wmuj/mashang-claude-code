@@ -15,7 +15,7 @@ function updateReadme() {
   text = text.replace(/^#\s+.*$/m, `# ${cfg.project.displayName}`);
 
   text = text.replace(
-    /wmuj\/civil-engineering-cloud-claude-code-source-v2\.1\.88/g,
+    /wmuj\/(civil-engineering-cloud-claude-code-source-v2\.1\.88|cloudforge-cli|mashang-claude-code)/g,
     repoSlug,
   );
   text = text.replace(/码上全栈创享家/g, cfg.maintainer.name);

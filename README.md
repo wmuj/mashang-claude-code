@@ -1,12 +1,12 @@
-# CloudForge CLI（码上全栈创享家）
+# Mashang Claude Code（码上全栈创享家）
 
 > 基于 `@anthropic-ai/claude-code` 还原源码进行二次开发，当前版本重点增强：一键启动面板、多服务商接入、开发者模式功能开关。
 
 <p align="center">
-  <a href="https://github.com/wmuj/cloudforge-cli/stargazers"><img src="https://img.shields.io/github/stars/wmuj/cloudforge-cli?style=flat-square" alt="Stars"></a>
-  <a href="https://github.com/wmuj/cloudforge-cli/network/members"><img src="https://img.shields.io/github/forks/wmuj/cloudforge-cli?style=flat-square" alt="Forks"></a>
-  <a href="https://github.com/wmuj/cloudforge-cli/issues"><img src="https://img.shields.io/github/issues/wmuj/cloudforge-cli?style=flat-square" alt="Issues"></a>
-  <a href="https://github.com/wmuj/cloudforge-cli/blob/main/LICENSE"><img src="https://img.shields.io/github/license/wmuj/cloudforge-cli?style=flat-square" alt="License"></a>
+  <a href="https://github.com/wmuj/mashang-claude-code/stargazers"><img src="https://img.shields.io/github/stars/wmuj/mashang-claude-code?style=flat-square" alt="Stars"></a>
+  <a href="https://github.com/wmuj/mashang-claude-code/network/members"><img src="https://img.shields.io/github/forks/wmuj/mashang-claude-code?style=flat-square" alt="Forks"></a>
+  <a href="https://github.com/wmuj/mashang-claude-code/issues"><img src="https://img.shields.io/github/issues/wmuj/mashang-claude-code?style=flat-square" alt="Issues"></a>
+  <a href="https://github.com/wmuj/mashang-claude-code/blob/main/LICENSE"><img src="https://img.shields.io/github/license/wmuj/mashang-claude-code?style=flat-square" alt="License"></a>
 </p>
 
 <p align="center">
@@ -18,7 +18,7 @@
 
 ## Star 趋势
 
-[![Star History Chart](https://api.star-history.com/svg?repos=wmuj/cloudforge-cli&type=Date)](https://www.star-history.com/#wmuj/cloudforge-cli&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=wmuj/mashang-claude-code&type=Date)](https://www.star-history.com/#wmuj/mashang-claude-code&Date)
 
 ---
 
@@ -35,8 +35,8 @@
 如果这个项目帮你省了时间、解决了问题，可以赞助一杯咖啡，支持后续维护与功能迭代。
 
 <p align="center">
-  <img src="zanzhu/zhifubao.jpg" alt="支付宝赞助二维码" width="280" />
-  <img src="zanzhu/weixin.jpg" alt="微信赞助二维码" width="280" />
+  <img src="sponsor/zhifubao.jpg" alt="支付宝赞助二维码" width="280" />
+  <img src="sponsor/weixin.jpg" alt="微信赞助二维码" width="280" />
 </p>
 
 ---
@@ -53,10 +53,10 @@ bun run launcher  # 启动本地一键面板
 Windows 用户可直接双击：
 
 ```bat
-start-launcher.bat
+mashang-claude-code-launcher.bat
 ```
 
-> 说明：`start-launcher.bat` 是唯一启动入口。
+> 说明：`mashang-claude-code-launcher.bat` 是唯一启动入口。
 
 ---
 
@@ -83,7 +83,7 @@ start-launcher.bat
 
 ### 操作系统支持
 
-- Windows：已重点适配（含 `start-launcher.bat` 双击启动）
+- Windows：已重点适配（含 `mashang-claude-code-launcher.bat` 双击启动）
 - macOS / Linux：可通过 `bun run launcher` 使用面板
 
 ### 开发者模式（新增）

@@ -1,7 +1,7 @@
 {
   "project": {
-    "displayName": "CloudForge CLI（码上全栈创享家）",
-    "shortName": "cloudforge-cli"
+    "displayName": "Mashang Claude Code（码上全栈创享家）",
+    "shortName": "mashang-claude-code"
   },
   "maintainer": {
     "name": "码上全栈创享家",
@@ -13,10 +13,10 @@
   },
   "github": {
     "owner": "wmuj",
-    "repo": "civil-engineering-cloud-claude-code-source-v2.1.88"
+    "repo": "mashang-claude-code"
   },
   "package": {
-    "name": "@wmuj/cloudforge-cli",
-    "description": "CloudForge CLI community-enhanced toolkit (based on restored Claude Code source)."
+    "name": "@wmuj/mashang-claude-code",
+    "description": "Mashang Claude Code community-enhanced toolkit (based on restored Claude Code source)."
   }
 }

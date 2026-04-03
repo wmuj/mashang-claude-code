@@ -1,14 +1,14 @@
 {
-  "name": "@wmuj/cloudforge-cli",
+  "name": "@wmuj/mashang-claude-code",
   "version": "999.0.0-restored",
   "private": true,
-  "description": "CloudForge CLI community-enhanced toolkit (based on restored Claude Code source).",
+  "description": "Mashang Claude Code community-enhanced toolkit (based on restored Claude Code source).",
   "license": "SEE LICENSE IN LICENSE.md",
   "type": "module",
   "packageManager": "bun@1.3.5",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wmuj/cloudforge-cli.git"
+    "url": "https://github.com/wmuj/mashang-claude-code.git"
   },
   "engines": {
     "bun": ">=1.3.5",
@@ -19,7 +19,7 @@
     "start": "bun run ./src/dev-entry.ts",
     "version": "bun run ./src/dev-entry.ts --version",
     "launcher": "bun run ./src/launcher/panel.ts",
-    "brand:apply": "node ./scripts/apply-branding.mjs"
+    "brand:apply": "node ./scripts/mashang-claude-branding.mjs"
   },
   "dependencies": {
     "@alcalzone/ansi-tokenize": "*",
@@ -97,8 +97,8 @@
     "modifiers-napi": "file:./shims/modifiers-napi",
     "url-handler-napi": "file:./shims/url-handler-napi"
   },
-  "homepage": "https://github.com/wmuj/cloudforge-cli",
+  "homepage": "https://github.com/wmuj/mashang-claude-code",
   "bugs": {
-    "url": "https://github.com/wmuj/cloudforge-cli/issues"
+    "url": "https://github.com/wmuj/mashang-claude-code/issues"
   }
 }

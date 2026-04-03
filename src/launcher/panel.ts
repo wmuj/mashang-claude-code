@@ -50,7 +50,7 @@ type FeatureAvailability = {
 
 const MAINTAINER_NAME = "码上全栈创享家";
 const MAINTAINER_GITHUB_REPO =
-  "https://github.com/wmuj/civil-engineering-cloud-claude-code-source-v2.1.88";
+  "https://github.com/wmuj/mashang-claude-code";
 const DEFAULT_CONFIG: LauncherConfig = {
   provider: "xai",
   apiKey: process.env.XAI_API_KEY || process.env.ANTHROPIC_API_KEY || "",
