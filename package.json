@@ -8,7 +8,7 @@
   "packageManager": "bun@1.3.5",
   "repository": {
     "type": "git",
-    "url": "https://github.com/wmuj/civil-engineering-cloud-claude-code-source-v2.1.88.git"
+    "url": "https://github.com/wmuj/cloudforge-cli.git"
   },
   "engines": {
     "bun": ">=1.3.5",
@@ -97,8 +97,8 @@
     "modifiers-napi": "file:./shims/modifiers-napi",
     "url-handler-napi": "file:./shims/url-handler-napi"
   },
-  "homepage": "https://github.com/wmuj/civil-engineering-cloud-claude-code-source-v2.1.88",
+  "homepage": "https://github.com/wmuj/cloudforge-cli",
   "bugs": {
-    "url": "https://github.com/wmuj/civil-engineering-cloud-claude-code-source-v2.1.88/issues"
+    "url": "https://github.com/wmuj/cloudforge-cli/issues"
   }
 }

@@ -3,10 +3,10 @@
 > 基于 `@anthropic-ai/claude-code` 还原源码进行二次开发，当前版本重点增强：一键启动面板、多服务商接入、开发者模式功能开关。
 
 <p align="center">
-  <a href="https://github.com/wmuj/civil-engineering-cloud-claude-code-source-v2.1.88/stargazers"><img src="https://img.shields.io/github/stars/wmuj/civil-engineering-cloud-claude-code-source-v2.1.88?style=flat-square" alt="Stars"></a>
-  <a href="https://github.com/wmuj/civil-engineering-cloud-claude-code-source-v2.1.88/network/members"><img src="https://img.shields.io/github/forks/wmuj/civil-engineering-cloud-claude-code-source-v2.1.88?style=flat-square" alt="Forks"></a>
-  <a href="https://github.com/wmuj/civil-engineering-cloud-claude-code-source-v2.1.88/issues"><img src="https://img.shields.io/github/issues/wmuj/civil-engineering-cloud-claude-code-source-v2.1.88?style=flat-square" alt="Issues"></a>
-  <a href="https://github.com/wmuj/civil-engineering-cloud-claude-code-source-v2.1.88/blob/main/LICENSE"><img src="https://img.shields.io/github/license/wmuj/civil-engineering-cloud-claude-code-source-v2.1.88?style=flat-square" alt="License"></a>
+  <a href="https://github.com/wmuj/cloudforge-cli/stargazers"><img src="https://img.shields.io/github/stars/wmuj/cloudforge-cli?style=flat-square" alt="Stars"></a>
+  <a href="https://github.com/wmuj/cloudforge-cli/network/members"><img src="https://img.shields.io/github/forks/wmuj/cloudforge-cli?style=flat-square" alt="Forks"></a>
+  <a href="https://github.com/wmuj/cloudforge-cli/issues"><img src="https://img.shields.io/github/issues/wmuj/cloudforge-cli?style=flat-square" alt="Issues"></a>
+  <a href="https://github.com/wmuj/cloudforge-cli/blob/main/LICENSE"><img src="https://img.shields.io/github/license/wmuj/cloudforge-cli?style=flat-square" alt="License"></a>
 </p>
 
 <p align="center">
@@ -18,7 +18,7 @@
 
 ## Star 趋势
 
-[![Star History Chart](https://api.star-history.com/svg?repos=wmuj/civil-engineering-cloud-claude-code-source-v2.1.88&type=Date)](https://www.star-history.com/#wmuj/civil-engineering-cloud-claude-code-source-v2.1.88&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=wmuj/cloudforge-cli&type=Date)](https://www.star-history.com/#wmuj/cloudforge-cli&Date)
 
 ---
 
