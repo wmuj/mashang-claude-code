@@ -18,3 +18,4 @@ coverage/
 .vscode/
 
 .launcher-config.json
+.launcher.lock

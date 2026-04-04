@@ -1,4 +1,4 @@
-import { existsSync, readFileSync, writeFileSync } from "fs";
+import { existsSync, readFileSync, writeFileSync, unlinkSync } from "fs";
 import { spawn, spawnSync } from "child_process";
 import { join } from "path";
 import {
@@ -55,6 +55,7 @@ type LauncherConfig = {
 };
 
 const CONFIG_PATH = join(process.cwd(), ".launcher-config.json");
+const LOCK_PATH = join(process.cwd(), ".launcher.lock");
 const LOGO_PATH = join(process.cwd(), "logo.jpg");
 const FALLBACK_LOGO_PATH = join(process.cwd(), "preview.png");
 
@@ -1105,8 +1106,8 @@ function html(
   </main>
 
   <script>
-    const initial = ${JSON.stringify(config)}
-    const featureAvailability = ${JSON.stringify(featureAvailability)}
+    const initial = ${JSON.stringify(config).replace(/</g, "\\u003c")}
+    const featureAvailability = ${JSON.stringify(featureAvailability).replace(/</g, "\\u003c")}
     const provider = document.getElementById('provider')
     const model = document.getElementById('model')
     const protocolMode = document.getElementById('protocolMode')
@@ -1308,7 +1309,8 @@ function html(
 
     document.getElementById('quitBtn').addEventListener('click', async () => {
       await fetch('/api/quit', { method: 'POST' })
-      window.close()
+      document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100dvh;color:#eaf7f8;font-size:18px;font-family:sans-serif;">面板已关闭，可以关闭此标签页。</div>'
+      try { window.close() } catch(_) {}
     })
   </script>
 </body>
@@ -1506,6 +1508,26 @@ if (!bunRuntime) {
   throw new Error("This launcher must be started with Bun runtime");
 }
 
+// Prevent multiple launcher instances from running simultaneously.
+if (existsSync(LOCK_PATH)) {
+  try {
+    const lockData = JSON.parse(readFileSync(LOCK_PATH, "utf8"));
+    const lockPid = lockData.pid as number;
+    // Check if the process is still alive.
+    try {
+      process.kill(lockPid, 0);
+      // Process is alive — open the existing panel instead of starting a new one.
+      console.log(`Launcher already running (PID ${lockPid}): ${lockData.url}`);
+      openBrowser(lockData.url as string);
+      process.exit(0);
+    } catch {
+      // Process is dead, stale lock — continue and overwrite.
+    }
+  } catch {
+    // Corrupt lock file — continue.
+  }
+}
+
 const server = bunRuntime.serve({
   port: 0,
   fetch: async (request) => {
@@ -1617,7 +1639,10 @@ const server = bunRuntime.serve({
     }
 
     if (request.method === "POST" && url.pathname === "/api/quit") {
-      setTimeout(() => server.stop(true), 50);
+      setTimeout(() => {
+        try { unlinkSync(LOCK_PATH); } catch {}
+        server.stop(true);
+      }, 50);
       return Response.json({ ok: true });
     }
 
@@ -1626,5 +1651,13 @@ const server = bunRuntime.serve({
 });
 
 const panelUrl = `http://127.0.0.1:${server.port}`;
+writeFileSync(LOCK_PATH, JSON.stringify({ pid: process.pid, url: panelUrl, startedAt: new Date().toISOString() }) + "\n", "utf8");
+
+// Clean up lock file on exit.
+const cleanLock = () => { try { unlinkSync(LOCK_PATH); } catch {} };
+process.on("exit", cleanLock);
+process.on("SIGINT", () => { cleanLock(); process.exit(0); });
+process.on("SIGTERM", () => { cleanLock(); process.exit(0); });
+
 console.log(`Launcher panel: ${panelUrl}`);
 openBrowser(panelUrl);
