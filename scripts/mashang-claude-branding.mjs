@@ -46,8 +46,8 @@ function updatePanel() {
   );
 
   text = text.replace(
-    /const MAINTAINER_GITHUB_REPO =\s*\n\s*".*";/,
-    `const MAINTAINER_GITHUB_REPO =\n  "${repoUrl}";`,
+    /const MAINTAINER_GITHUB_REPO\s*=\s*(?:\n\s*)?".*";/,
+    `const MAINTAINER_GITHUB_REPO = "${repoUrl}";`,
   );
 
   writeFileSync(panelPath, text, "utf8");

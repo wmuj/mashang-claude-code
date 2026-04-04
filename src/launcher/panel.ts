@@ -178,7 +178,7 @@ function normalizeBaseUrl(rawUrl: string): string {
   }
   try {
     const url = new URL(rawUrl);
-    if (url.pathname === "/v1") {
+    if (url.pathname === "/v1" || url.pathname === "/v1/") {
       url.pathname = "";
       return url.toString().replace(/\/$/u, "");
     }
@@ -311,6 +311,7 @@ function clearProviderEnv(env: NodeJS.ProcessEnv): void {
   delete env.ANTHROPIC_BASE_URL;
   delete env.ANTHROPIC_FOUNDRY_BASE_URL;
   delete env.ANTHROPIC_FOUNDRY_API_KEY;
+  delete env.ANTHROPIC_VERTEX_PROJECT_ID;
 }
 
 function toAnthropicCompatibleBaseFromOpenAI(rawUrl: string): string {
@@ -1580,6 +1581,9 @@ const server = bunRuntime.serve({
     }
 
     if (request.method === "POST" && url.pathname === "/api/save") {
+      if (request.headers.get("content-type") !== "application/json") {
+        return new Response("Bad request", { status: 400 });
+      }
       const input = (await request.json()) as Partial<LauncherConfig>;
       const savedConfig = saveConfig(input);
       applyThemeSetting(savedConfig.theme);
@@ -1606,6 +1610,9 @@ const server = bunRuntime.serve({
     }
 
     if (request.method === "POST" && url.pathname === "/api/launch") {
+      if (request.headers.get("content-type") !== "application/json") {
+        return new Response("Bad request", { status: 400 });
+      }
       const input = (await request.json()) as Partial<LauncherConfig>;
       const savedConfig = saveConfig(input);
       applyThemeSetting(savedConfig.theme);
