@@ -577,8 +577,21 @@ function launchCli(config: LauncherConfig): void {
   }
 
   if (process.platform === "darwin") {
-    const envPairs = Object.entries(env)
-      .filter(([, v]) => v !== undefined)
+    // Only export env vars that differ from the inherited environment,
+    // focusing on Claude-related keys to avoid leaking the entire env
+    // into Terminal command history and hitting osascript length limits.
+    const relevantPrefixes = [
+      "ANTHROPIC_",
+      "CLAUDE_",
+      "XAI_",
+      "NO_COLOR",
+    ];
+    const envDiff = Object.entries(env).filter(([k, v]) => {
+      if (v === undefined) return false;
+      if (process.env[k] === v) return false;
+      return relevantPrefixes.some((p) => k.startsWith(p)) || k === "NO_COLOR";
+    });
+    const envPairs = envDiff
       .map(([k, v]) => `export ${k}=${shellEscape(v!)}`)
       .join("; ");
     const bunCmd = `cd ${shellEscape(process.cwd())} && ${envPairs ? envPairs + " && " : ""}bun ${args.join(" ")}`;
