@@ -76,8 +76,9 @@ chmod +x mashang-claude-code-launcher.sh   # 仅首次
 
 ### 操作系统支持
 
-- Windows：已重点适配（含 `mashang-claude-code-launcher.bat` 双击启动）
-- macOS / Linux：已适配（含 `mashang-claude-code-launcher.sh` 脚本启动，也可通过 `bun run launcher` 使用面板）
+- **Windows**：已重点适配（含 `mashang-claude-code-launcher.bat` 双击启动，面板点击启动后自动打开新 CMD 窗口）
+- **macOS**：已适配（含 `mashang-claude-code-launcher.sh` 脚本启动，面板点击启动后自动打开 Terminal.app）
+- **Linux**：已适配（面板点击启动后自动检测系统终端模拟器并打开新窗口，支持 gnome-terminal / konsole / xfce4-terminal / mate-terminal / x-terminal-emulator / xterm，未检测到时回退为后台运行）
 
 ### 开发者模式（新增）
 
