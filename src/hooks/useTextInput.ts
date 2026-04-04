@@ -105,19 +105,13 @@ export function useTextInput({
   const cursor = Cursor.fromText(originalValue, columns, offset)
   const { addNotification, removeNotification } = useNotifications()
 
-  const handleCtrlC = useDoublePress(
-    show => {
-      onExitMessage?.(show, 'Ctrl-C')
-    },
-    () => onExit?.(),
-    () => {
-      if (originalValue) {
-        onChange('')
-        setOffset(0)
-        onHistoryReset?.()
-      }
-    },
-  )
+  const handleCtrlC = () => {
+    if (originalValue) {
+      onChange('')
+      setOffset(0)
+      onHistoryReset?.()
+    }
+  }
 
   // NOTE(keybindings): This escape handler is intentionally NOT migrated to the keybindings system.
   // It's a text-level double-press escape for clearing input, not an action-level keybinding.

@@ -56,11 +56,8 @@ export function useExitOnCtrlCD(
 
   const exitFn = useMemo(() => onExit ?? exit, [onExit, exit])
 
-  // Double-press handler for ctrl+c
-  const handleCtrlCDoublePress = useDoublePress(
-    pending => setExitState({ pending, keyName: 'Ctrl-C' }),
-    exitFn,
-  )
+  // Double-press handler for ctrl+c (disabled to prevent accidental exits)
+  const handleCtrlCDoublePress = useCallback(() => {}, [])
 
   // Double-press handler for ctrl+d
   const handleCtrlDDoublePress = useDoublePress(
