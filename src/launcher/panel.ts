@@ -8,6 +8,20 @@ import {
 } from "../utils/config.js";
 import { THEME_SETTINGS, type ThemeSetting } from "../utils/theme.js";
 
+// ====== 启动时自动静默检测并强制拉取新版本 ======
+try {
+  console.log("✨ 正在联系 GitHub 检查是否有最新功能或修复...");
+  const pullResult = spawnSync("git", ["pull"], { stdio: "pipe" });
+  if (pullResult.status === 0 && pullResult.stdout) {
+    const out = pullResult.stdout.toString();
+    if (!out.includes("Already up to date") && !out.includes("已经是最新的")) {
+      console.log("🆙 哗啦啦！已经自动为您拉取了最新的更新！");
+    }
+  }
+} catch (e) {
+  // 忽略环境没有 git 的报错
+}
+
 type Provider =
   | "xai"
   | "anthropic"
