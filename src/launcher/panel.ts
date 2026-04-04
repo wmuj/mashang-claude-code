@@ -1157,6 +1157,9 @@ function html(
     </div>
 
     <div class="hint">配置会保存在项目根目录 .launcher-config.json。仅本地使用，不会自动上传。</div>
+    <div id="updateBanner" style="display:none; margin: 10px 0; padding: 12px; background: rgba(30, 215, 96, 0.1); border: 1px solid var(--theme-text-ok); color: var(--theme-text-ok); border-radius: 8px; font-weight: bold; cursor: pointer;" title="点击立刻自动更新" onclick="triggerAutoUpdate()">
+      ✨ 发现项目新版本！点击这里自动拉取更新 (git pull)
+    </div>
     <div class="status" id="status"></div>
 
     <div class="footer">
@@ -1375,6 +1378,34 @@ function html(
       document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100dvh;color:#eaf7f8;font-size:18px;font-family:sans-serif;">面板已关闭，可以关闭此标签页。</div>'
       try { window.close() } catch(_) {}
     })
+
+    async function triggerAutoUpdate() {
+      show('正在自动拉取更新，请稍候不要进行其他操作...', 'warn');
+      try {
+        const r = await fetch('/api/auto-update', { method: 'POST' });
+        const data = await r.json();
+        if (data.ok) {
+          alert('✅ 拉取更新成功！\\n\\n由于代码已经被覆盖，程序需要重启。请在提示结束后关闭网页，去终端窗口按 Ctrl+C，然后再重新执行 bun run launcher !');
+          fetch('/api/quit', { method: 'POST' });
+          document.body.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:100dvh;color:#eaf7f8;font-size:18px;font-family:sans-serif;">已更新完毕。请回终端重启面板。</div>';
+        } else {
+          show('自动拉取失败，请在终端手动执行 git pull。报错信息：' + data.error, 'err');
+        }
+      } catch (e) {
+        show('自动拉取失败: ' + String(e), 'err');
+      }
+    }
+
+    // 启动时自动检查更新
+    fetch('/api/check-update').then(res => res.json()).then(data => {
+      if (data.updateAvailable) {
+        if (confirm('✨ 发现项目有新版本提交（修复 BUG 或 功能升级）！\\n\\n是否立即自动拉取更新 (git pull) ？')) {
+          triggerAutoUpdate();
+        } else {
+          document.getElementById('updateBanner').style.display = 'block';
+        }
+      }
+    }).catch(err => console.debug('Update check failed:', err));
   </script>
 </body>
 </html>`;
@@ -1640,6 +1671,33 @@ const server = bunRuntime.serve({
           headers: { "content-type": "text/html; charset=utf-8" },
         },
       );
+    }
+
+    if (request.method === "GET" && url.pathname === "/api/check-update") {
+      try {
+        const localHash = spawnSync("git", ["rev-parse", "HEAD"]).stdout?.toString().trim() || "";
+        const res = await fetch("https://api.github.com/repos/wmuj/mashang-claude-code/commits/main", {
+          headers: { "User-Agent": "mashang-claude-code-launcher" }
+        });
+        const data = await res.json();
+        const remoteHash = data.sha;
+        const updateAvailable = !!(remoteHash && localHash && remoteHash !== localHash);
+        return Response.json({ updateAvailable, remoteHash, localHash });
+      } catch (e) {
+        return Response.json({ updateAvailable: false, error: String(e) });
+      }
+    }
+
+    if (request.method === "POST" && url.pathname === "/api/auto-update") {
+      try {
+        const result = spawnSync("git", ["pull"], { stdio: "pipe" });
+        if (result.status !== 0) {
+          return Response.json({ ok: false, error: result.stderr?.toString() });
+        }
+        return Response.json({ ok: true });
+      } catch (e) {
+        return Response.json({ ok: false, error: String(e) });
+      }
     }
 
     if (request.method === "POST" && url.pathname === "/api/save") {
