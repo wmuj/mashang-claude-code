@@ -1,0 +1,46 @@
+name: macOS Runtime Test
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+  workflow_dispatch:
+
+jobs:
+  test-macos:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun environment
+        uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Test .sh script syntax
+        run: bash -n ./mashang-claude-code-launcher.sh
+
+      - name: Test CLI boot (run version check)
+        run: bun run version
+
+      - name: Test Panel Launch (Dry run)
+        run: |
+          # Start panel in background
+          bun run launcher &
+          pid=$!
+          # Wait a few seconds to ensure it doesn't crash on boot
+          sleep 5
+          # Kill the process if it's still alive
+          if kill -0 $pid 2>/dev/null; then
+            echo "Panel started successfully and is running!"
+            kill $pid
+          else
+            echo "Panel crashed on startup!"
+            exit 1
+          fi
