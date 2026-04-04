@@ -15,6 +15,9 @@
     "paths": {
       "src/*": [
         "./src/*"
+      ],
+      "bun:bundle": [
+        "./shims/bun-bundle.ts"
       ]
     },
     "types": [
