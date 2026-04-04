@@ -51,6 +51,7 @@ type LauncherConfig = {
   enableKairos: boolean;
   enableUltraplan: boolean;
   enableCoordinator: boolean;
+  dangerouslySkipPermissions: boolean;
   model: string;
 };
 
@@ -95,6 +96,7 @@ const DEFAULT_CONFIG: LauncherConfig = {
   enableKairos: false,
   enableUltraplan: false,
   enableCoordinator: false,
+  dangerouslySkipPermissions: false,
   model: "grok-4.20-0309-reasoning",
 };
 
@@ -272,6 +274,10 @@ function loadConfig(): LauncherConfig {
         typeof parsed.enableCoordinator === "boolean"
           ? parsed.enableCoordinator
           : DEFAULT_CONFIG.enableCoordinator,
+      dangerouslySkipPermissions:
+        typeof parsed.dangerouslySkipPermissions === "boolean"
+          ? parsed.dangerouslySkipPermissions
+          : DEFAULT_CONFIG.dangerouslySkipPermissions,
       model:
         typeof parsed.model === "string" ? parsed.model : DEFAULT_CONFIG.model,
     };
@@ -564,6 +570,9 @@ function shellEscape(s: string): string {
 function launchCli(config: LauncherConfig): void {
   const env = getRuntimeEnv(config);
   const args = ["run", "./src/dev-entry.ts", "--bare"];
+  if (config.dangerouslySkipPermissions) {
+    args.push("--dangerously-skip-permissions");
+  }
   if (config.model.trim()) {
     args.push("--model", config.model.trim());
   }
@@ -1080,6 +1089,7 @@ function html(
 
     <div class="devbox">
       <label class="switch"><input type="checkbox" id="developerMode" /> 开发者模式（允许按白名单解锁被门控功能）</label>
+      <label class="switch" style="margin-top:8px; display:inline-flex;"><input type="checkbox" id="dangerouslySkipPermissions" /> ⚠️ 全程跳过安全确认（一键大权限跑代码，推荐）</label>
       <div class="switches" id="devSwitches">
         <label class="switch" id="buddySwitch"><input type="checkbox" id="enableBuddy" /> Buddy 宠物 <span id="buddyTag" class="tag" style="display:none;">未安装</span></label>
         <label class="switch" id="proactiveSwitch"><input type="checkbox" id="enableProactive" /> Proactive 主动模式 <span id="proactiveTag" class="tag" style="display:none;">未安装</span></label>
@@ -1120,6 +1130,7 @@ function html(
     const foundryApiKey = document.getElementById('foundryApiKey')
     const foundryBaseUrl = document.getElementById('foundryBaseUrl')
     const developerMode = document.getElementById('developerMode')
+    const dangerouslySkipPermissions = document.getElementById('dangerouslySkipPermissions')
     const enableBuddy = document.getElementById('enableBuddy')
     const enableProactive = document.getElementById('enableProactive')
     const enableBridge = document.getElementById('enableBridge')
@@ -1176,6 +1187,7 @@ function html(
     foundryApiKey.value = initial.foundryApiKey || ''
     foundryBaseUrl.value = initial.foundryBaseUrl || ''
     developerMode.checked = !!initial.developerMode
+    dangerouslySkipPermissions.checked = !!initial.dangerouslySkipPermissions
     enableBuddy.checked = !!initial.enableBuddy
     enableProactive.checked = !!initial.enableProactive
     enableBridge.checked = !!initial.enableBridge
@@ -1246,6 +1258,7 @@ function html(
         foundryApiKey: foundryApiKey.value,
         foundryBaseUrl: foundryBaseUrl.value,
         developerMode: developerMode.checked,
+        dangerouslySkipPermissions: dangerouslySkipPermissions.checked,
         enableBuddy: enableBuddy.checked,
         enableProactive: enableProactive.checked,
         enableBridge: enableBridge.checked,

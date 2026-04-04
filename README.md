@@ -84,6 +84,13 @@ chmod +x mashang-claude-code-launcher.sh   # 仅首次
 - 面板内置开发者模式开关，可按白名单启用被门控能力（如 Buddy / Proactive / Bridge / Voice）。
 - 默认关闭，优先保证普通用户稳定性。
 
+### 跳过权限确认（新增）
+
+- 面板提供「⚠️ 全程跳过安全确认」开关，开启后 Claude 在执行命令、修改文件时不再逐步弹窗确认，直接执行。
+- 等同于 CLI 的 `--dangerously-skip-permissions` 参数。
+- **注意**：对话控制权仍在用户手中，Claude 不会自行启动任务；仅省略每步操作前的权限确认弹窗。
+- 默认关闭，适合明确知道要做什么、不想反复点确认的场景。
+
 ### 面板与终端展示
 
 <p align="center">
@@ -220,14 +227,15 @@ chmod +x mashang-claude-code-launcher.sh   # 仅首次
 #### 隐藏 CLI 参数
 
 ```
---teleport [session]    恢复传送会话
---remote [description]  创建远程会话
---proactive             主动模式
---assistant             助手模式
---brief                 简报模式
---remote-control        远程控制
---hard-fail             硬失败模式
---agent-teams           多代理团队
+--teleport [session]              恢复传送会话
+--remote [description]            创建远程会话
+--proactive                       主动模式
+--assistant                       助手模式
+--brief                           简报模式
+--remote-control                  远程控制
+--hard-fail                       硬失败模式
+--agent-teams                     多代理团队
+--dangerously-skip-permissions    跳过所有安全确认（一键运行）
 ```
 
 ---
