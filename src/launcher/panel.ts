@@ -555,6 +555,10 @@ function getBrandLogoSrc(): string | undefined {
   return undefined;
 }
 
+function shellEscape(s: string): string {
+  return "'" + s.replace(/'/g, "'\\''") + "'";
+}
+
 function launchCli(config: LauncherConfig): void {
   const env = getRuntimeEnv(config);
   const args = ["run", "./src/dev-entry.ts", "--bare"];
@@ -566,6 +570,23 @@ function launchCli(config: LauncherConfig): void {
     spawn("cmd", ["/c", "start", "", "cmd", "/k", "bun", ...args], {
       cwd: process.cwd(),
       env,
+      detached: true,
+      stdio: "ignore",
+    }).unref();
+    return;
+  }
+
+  if (process.platform === "darwin") {
+    const envPairs = Object.entries(env)
+      .filter(([, v]) => v !== undefined)
+      .map(([k, v]) => `export ${k}=${shellEscape(v!)}`)
+      .join("; ");
+    const bunCmd = `cd ${shellEscape(process.cwd())} && ${envPairs ? envPairs + " && " : ""}bun ${args.join(" ")}`;
+    const script = `tell application "Terminal"
+  activate
+  do script ${JSON.stringify(bunCmd)}
+end tell`;
+    spawn("osascript", ["-e", script], {
       detached: true,
       stdio: "ignore",
     }).unref();

@@ -40,7 +40,16 @@ Windows 用户可直接双击：
 mashang-claude-code-launcher.bat
 ```
 
-> 说明：`mashang-claude-code-launcher.bat` 是唯一启动入口。
+macOS / Linux 用户可在终端执行（首次需赋权）：
+
+```bash
+chmod +x mashang-claude-code-launcher.sh   # 仅首次
+./mashang-claude-code-launcher.sh
+```
+
+> macOS 用户也可以在 Finder 中右键 → 打开方式 → 终端，即可双击启动。
+
+> 说明：`.bat` 文件为 Windows 启动入口，`.sh` 文件为 macOS / Linux 启动入口。
 
 ---
 
@@ -68,7 +77,7 @@ mashang-claude-code-launcher.bat
 ### 操作系统支持
 
 - Windows：已重点适配（含 `mashang-claude-code-launcher.bat` 双击启动）
-- macOS / Linux：可通过 `bun run launcher` 使用面板
+- macOS / Linux：已适配（含 `mashang-claude-code-launcher.sh` 脚本启动，也可通过 `bun run launcher` 使用面板）
 
 ### 开发者模式（新增）
 
