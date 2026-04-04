@@ -457,6 +457,24 @@ function canRunBun(): boolean {
   return result.status === 0;
 }
 
+function findLinuxTerminal(): string | null {
+  const terminals = [
+    "gnome-terminal",
+    "konsole",
+    "xfce4-terminal",
+    "mate-terminal",
+    "x-terminal-emulator",
+    "xterm",
+  ];
+  for (const term of terminals) {
+    const result = spawnSync("which", [term], { stdio: "ignore" });
+    if (result.status === 0) {
+      return term;
+    }
+  }
+  return null;
+}
+
 function hasBuddyCommandModule(): boolean {
   return hasCommandModule("buddy/index");
 }
@@ -617,12 +635,43 @@ end tell`;
     return;
   }
 
-  spawn("bun", args, {
-    cwd: process.cwd(),
-    env,
-    detached: true,
-    stdio: "ignore",
-  }).unref();
+  // Linux: try to open a visible terminal window, similar to Windows/macOS.
+  const terminal = findLinuxTerminal();
+  if (terminal) {
+    const relevantPrefixes = [
+      "ANTHROPIC_",
+      "CLAUDE_",
+      "XAI_",
+      "NO_COLOR",
+    ];
+    const envDiff = Object.entries(env).filter(([k, v]) => {
+      if (v === undefined) return false;
+      if (process.env[k] === v) return false;
+      return relevantPrefixes.some((p) => k.startsWith(p)) || k === "NO_COLOR";
+    });
+    const envPairs = envDiff
+      .map(([k, v]) => `export ${k}=${shellEscape(v!)}`)
+      .join("; ");
+    const bunCmd = `cd ${shellEscape(process.cwd())} && ${envPairs ? envPairs + " && " : ""}bun ${args.join(" ")}; exec bash`;
+
+    const termArgs: string[] =
+      terminal === "gnome-terminal"
+        ? ["--", "bash", "-c", bunCmd]
+        : ["-e", "bash", "-c", bunCmd];
+
+    spawn(terminal, termArgs, {
+      detached: true,
+      stdio: "ignore",
+    }).unref();
+  } else {
+    // Fallback: no terminal emulator found, run in background.
+    spawn("bun", args, {
+      cwd: process.cwd(),
+      env,
+      detached: true,
+      stdio: "ignore",
+    }).unref();
+  }
 }
 
 function html(
