@@ -2,6 +2,27 @@
 
 > 基于 `@anthropic-ai/claude-code` 还原源码进行二次开发，当前版本重点增强：一键启动面板、多服务商接入、开发者模式功能开关。
 
+---
+
+> [!IMPORTANT]
+> ## 📢 项目归档公告
+>
+> 感谢每一位关注、使用和 Star 本项目的朋友！
+>
+> 经过认真考虑，本项目将**停止主动维护和功能更新**。随着社区生态的不断发展，目前已有 [CC Switch](https://github.com/farion1231/ccswitch) 等优秀的开源工具可以更好地满足 Claude Code 多服务商配置管理的需求，且无需修改源码、维护成本更低。
+>
+> 本仓库将保持**公开可访问**状态，现有代码和文档依然可以正常使用。如果你觉得这个项目的思路对你有帮助，非常欢迎：
+>
+> - 🍴 **Fork 本仓库**，在此基础上继续开发你自己的增强版本
+> - 📖 **参考文档中的隐藏功能梳理**，用于你自己的研究和学习
+> - 💡 **提交 PR**，如果你做了有价值的改进，我仍然会审阅和合并
+>
+> 再次感谢大家一路以来的支持，祝各位编码愉快！🎉
+>
+> — 码上全栈创享家
+
+---
+
 <p align="center">
   <a href="https://github.com/wmuj/mashang-claude-code/stargazers"><img src="https://img.shields.io/github/stars/wmuj/mashang-claude-code?style=flat-square" alt="Stars"></a>
   <a href="https://github.com/wmuj/mashang-claude-code/network/members"><img src="https://img.shields.io/github/forks/wmuj/mashang-claude-code?style=flat-square" alt="Forks"></a>
